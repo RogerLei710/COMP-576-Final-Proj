@@ -1,3 +1,13 @@
+################################################################################
+# Demo script that immplements white box attack on trained CNN on Mnist dataset.
+#
+# It loads stored model from saved_models/mnist, using its gradient directly to
+# generate a perturbed image for each input.
+#
+# Usage: python3 mnistAttack.py
+# 
+# Author: Roger
+################################################################################
 import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
