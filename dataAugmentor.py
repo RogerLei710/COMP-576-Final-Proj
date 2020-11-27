@@ -1,5 +1,5 @@
 ################################################################################
-# Data augmentators for mnist.
+# Data augmentators.
 #
 # It should correspond to the augmentor(s) used in the paper "Practical Black-Box Attacks against Machine Learning".
 #
@@ -27,6 +27,8 @@ def Jacobian(model, data):
 
 
 def test_Jacobian():
+    """Test with pretrained model + its corresponding dataset
+    """
     # Load model
     model = keras.models.load_model('saved_models/mnist')
     model.compile(
