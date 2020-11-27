@@ -1,3 +1,12 @@
+################################################################################
+# Baseline CNN model on Mnist dataset using tf2.
+#
+# It saves/overwrites model and its configs under saved_models/mnist/.
+#
+# Usage: python3 mnistModel.py
+#
+# Author: Roger
+################################################################################
 import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
