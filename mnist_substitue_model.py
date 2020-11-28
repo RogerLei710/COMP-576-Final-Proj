@@ -29,7 +29,7 @@ num_classes = 10
 # [85, 126, 116, 107, 110, 87, 87, 99, 89, 94]
 x_data = x_data.astype("float32") / 255.0
 # 1. initial data collection
-x_train, x_test, y_train, y_test = split_train_test(x_data, y_data, test_ratio=0.2)
+x_train, x_test, y_train, y_test = split_train_test(x_data, y_data, test_ratio=0.95)
 
 x_train = x_train.reshape((-1, img_rows, img_cols, channels))
 x_test = x_test.reshape((-1, img_rows, img_cols, channels))
@@ -74,7 +74,7 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda):
 		# x + lambda * sgn(JF(x)[O(x)])
 		x_delta = lamda * tf.sign(x_gradient)
 		x_new_train = x_train + x_delta
-        # Clip data, each pixel is only valid in [0.0, 1.0]
+		# Clip data, each pixel is only valid in [0.0, 1.0]
 		x_new_train = np.clip(x_new_train, 0.0, 1.0)
 		y_new_train_prob = target_model.predict(x_new_train)
 		y_new_train = y_new_train_prob.argmax(axis=-1)

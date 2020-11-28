@@ -62,19 +62,19 @@ def adversarial_pattern(image, label):
 	return signed_grad
 
 
-def generate_adversarials(batch_size):
+def generate_adversarials(batch_size, epslion=0.2):
 	while True:
 		x = []
 		y = []
 		for batch in range(batch_size):
-			N = random.randint(0, y_test.shape[0] - 1)
-			image = x_test[N]
-			label = y_test_one_hot[N]
+			# N = random.randint(0, y_test.shape[0] - 1)
+			image = x_test[batch]
+			label = y_test_one_hot[batch]
 
-			adversarial = make_adversarial(image, label)
+			adversarial = make_adversarial(image, label, epslion)
 
 			x.append(adversarial)
-			y.append(y_test[N])
+			y.append(y_test[batch])
 
 		x = np.asarray(x).reshape((batch_size, img_rows, img_cols, channels))
 		y = np.asarray(y)
@@ -83,12 +83,12 @@ def generate_adversarials(batch_size):
 
 
 # plot first x misclassification pictures
-def plot_misclassifications(miscount, idx):
+def plot_misclassifications(miscount, idx, epslion=0.2):
 	while miscount > 0:
 		image = x_test[idx]
 		image = image.reshape((1, img_rows, img_cols, channels))
 		image_label = y_test_one_hot[idx]
-		adversarial = make_adversarial(image, image_label)
+		adversarial = make_adversarial(image, image_label, epslion)
 		if labels[substitute_model.predict(image).argmax()] != labels[substitute_model.predict(adversarial).argmax()]:
 			miscount -= 1
 			label_orig, label_classified = labels[substitute_model.predict(image).argmax()], labels[substitute_model.predict(adversarial).argmax()]
@@ -104,11 +104,11 @@ def plot_misclassifications(miscount, idx):
 
 
 adversarial_num = 1000
-x_adversarial_test, y_adversarial_test = next(generate_adversarials(adversarial_num))
+x_adversarial_test, y_adversarial_test = next(generate_adversarials(batch_size=adversarial_num, epslion=0.2))
 print("Accuracy of Substitute model on regular images:", substitute_model.evaluate(x=x_test, y=y_test, verbose=0))
-print("Accuracy of target model on regular images:", target_model.evaluate(x=x_test, y=y_test, verbose=0))
+print("Accuracy of Target model on regular images:", target_model.evaluate(x=x_test, y=y_test, verbose=0))
 
 print("Accuracy of Substitute model on adversarial images:", substitute_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
-print("Accuracy of target model on adversarial images:", target_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
+print("Accuracy of Target model on adversarial images:", target_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
 
-# plot_misclassifications(10, 0)
+# plot_misclassifications(miscount=10, idx=0, epslion=0.2)
