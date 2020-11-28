@@ -1,5 +1,15 @@
 *.swp
 .keras/
 .cache/
+__pycache__/
+.bash_history
+.ipython/
+.local/
+.ipynb_checkpoints/
+.jupyter/
+
+# Avoid pushing models, unless forced
+saved_models/
 
 tags
+*.vim

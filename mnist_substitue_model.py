@@ -17,6 +17,8 @@ from tensorflow.keras.datasets import mnist
 from tensorflow import keras
 from tensorflow.keras import layers
 import data_augmentor as da
+import numpy as np
+from util import split_train_test
 
 target_model = keras.models.load_model('saved_models/mnist_target_model')
 (_, _), (x_data, y_data) = mnist.load_data()
@@ -27,9 +29,7 @@ num_classes = 10
 # [85, 126, 116, 107, 110, 87, 87, 99, 89, 94]
 x_data = x_data.astype("float32") / 255.0
 # 1. initial data collection
-x_train = x_data[:1000]
-x_test = x_data[1000:]
-y_test = y_data[1000:]
+x_train, x_test, y_train, y_test = split_train_test(x_data, y_data, test_ratio=0.2)
 
 x_train = x_train.reshape((-1, img_rows, img_cols, channels))
 x_test = x_test.reshape((-1, img_rows, img_cols, channels))
@@ -59,6 +59,7 @@ def create_model():
 # 3. substitute training
 def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda):
 	for iter in range(epochs):
+		print("Train substitute network round {} / {} ...".format(iter, epochs))
 		# train the ith dataset 10 epochs
 		model.fit(x_train, y_train, batch_size=256, epochs=10, validation_data=(x_test, y_test))
 		# data augmentation
@@ -73,11 +74,14 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda):
 		# x + lambda * sgn(JF(x)[O(x)])
 		x_delta = lamda * tf.sign(x_gradient)
 		x_new_train = x_train + x_delta
+        # Clip data, each pixel is only valid in [0.0, 1.0]
+		x_new_train = np.clip(x_new_train, 0.0, 1.0)
 		y_new_train_prob = target_model.predict(x_new_train)
 		y_new_train = y_new_train_prob.argmax(axis=-1)
 		x_train = tf.concat([x_train, x_new_train], 0)
 		y_train = tf.concat([y_train, y_new_train], 0)
 	# the augmented data from the last time in the loop needs to be trained
+	print("Train substitute network round {} / {} ...".format(epochs, epochs))
 	model.fit(x_train, y_train, batch_size=256, epochs=10, validation_data=(x_test, y_test))
 
 
@@ -88,6 +92,6 @@ model.compile(
 	metrics=["accuracy"],
 )
 
-train_sub(model=model, x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test, epochs=6, lamda=0.1)
-print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
+train_sub(model=model, x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test, epochs=4, lamda=0.001)
+print("(substitute model) Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
 model.save("saved_models/mnist_substitute_model/")

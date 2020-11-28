@@ -46,6 +46,11 @@ target_model.compile(
 	metrics=["accuracy"],
 )
 
+def make_adversarial(image, label, epsilon=0.2):
+	perturbations = adversarial_pattern(image.reshape((1, img_rows, img_cols, channels)), label).numpy()
+	adversarial = np.clip(image + perturbations * epsilon, 0.0, 1.0)
+	return adversarial
+
 def adversarial_pattern(image, label):
 	image = tf.cast(image, tf.float32)
 	with tf.GradientTape() as tape:
@@ -62,14 +67,11 @@ def generate_adversarials(batch_size):
 		x = []
 		y = []
 		for batch in range(batch_size):
-			N = random.randint(0, y_test.shape[0])
+			N = random.randint(0, y_test.shape[0] - 1)
 			image = x_test[N]
 			label = y_test_one_hot[N]
 
-			perturbations = adversarial_pattern(image.reshape((1, img_rows, img_cols, channels)), label).numpy()
-
-			epsilon = 0.1
-			adversarial = image + perturbations * epsilon
+			adversarial = make_adversarial(image, label)
 
 			x.append(adversarial)
 			y.append(y_test[N])
@@ -86,17 +88,18 @@ def plot_misclassifications(miscount, idx):
 		image = x_test[idx]
 		image = image.reshape((1, img_rows, img_cols, channels))
 		image_label = y_test_one_hot[idx]
-		perturbations = adversarial_pattern(image, image_label).numpy()
-		adversarial = image + perturbations * 0.1
+		adversarial = make_adversarial(image, image_label)
 		if labels[substitute_model.predict(image).argmax()] != labels[substitute_model.predict(adversarial).argmax()]:
 			miscount -= 1
+			label_orig, label_classified = labels[substitute_model.predict(image).argmax()], labels[substitute_model.predict(adversarial).argmax()]
 			if channels == 1:
-				plt.imshow(adversarial.reshape((img_rows, img_cols)))
+				adversarial_img = adversarial.reshape((img_rows, img_cols))
+				plt.imshow(adversarial_img)
 			else:
 				plt.imshow(adversarial.reshape((img_rows, img_cols, channels)))
 			plt.show()
-			print('The original image is classified as {}'.format(labels[substitute_model.predict(image).argmax()]))
-			print('The adversarial image is classified as {}'.format(labels[substitute_model.predict(adversarial).argmax()]))
+			print('The original image is classified as {}'.format(label_orig))
+			print('The adversarial image is classified as {}'.format(label_classified))
 		idx += 1
 
 
