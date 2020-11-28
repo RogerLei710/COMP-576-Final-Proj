@@ -1,5 +1,10 @@
 *.swp
 .keras/
 .cache/
+__pycache__/
+
+# Avoid pushing models, unless forced
+saved_models/
 
 tags
+*.vim
