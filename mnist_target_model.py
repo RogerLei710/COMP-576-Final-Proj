@@ -1,9 +1,9 @@
 ################################################################################
 # Baseline CNN model on Mnist dataset using tf2.
 #
-# It saves/overwrites model and its configs under saved_models/mnist/.
+# It saves/overwrites model and its configs under saved_models/mnist_target_model/.
 #
-# Usage: python3 mnistModel.py
+# Usage: python3 mnist_target_model.py
 #
 # Author: Roger
 ################################################################################
@@ -51,6 +51,6 @@ model.compile(
 	optimizer=keras.optimizers.Adam(lr=1e-3),
 	metrics=["accuracy"],
 )
-model.fit(x_train, y_train, batch_size=32, epochs=20, validation_data=(x_test, y_test))
+model.fit(x_train, y_train, batch_size=256, epochs=20, validation_data=(x_test, y_test))
 print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
-model.save("saved_models/mnist/")
+model.save("saved_models/mnist_target_model/")

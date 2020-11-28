@@ -4,7 +4,7 @@
 # It loads stored model from saved_models/mnist, using its gradient directly to
 # generate a perturbed image for each input.
 #
-# Usage: python3 mnistAttack.py
+# Usage: python3 mnist_attack.py
 # 
 # Author: Roger
 ################################################################################
@@ -35,7 +35,7 @@ x_test = x_test.reshape((-1, img_rows, img_cols, channels))
 
 y_test_one_hot = tf.keras.utils.to_categorical(y_test, num_classes)
 
-model = keras.models.load_model('saved_models/mnist')
+model = keras.models.load_model('saved_models/mnist_substitute_model')
 model.compile(
 	loss=keras.losses.SparseCategoricalCrossentropy(),
 	optimizer=keras.optimizers.Adam(lr=1e-3),

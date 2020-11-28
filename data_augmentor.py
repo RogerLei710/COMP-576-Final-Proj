@@ -30,7 +30,7 @@ def test_Jacobian():
     """Test with pretrained model + its corresponding dataset
     """
     # Load model
-    model = keras.models.load_model('saved_models/mnist')
+    model = keras.models.load_model('saved_models/mnist_target_model')
     model.compile(
     	loss=keras.losses.SparseCategoricalCrossentropy(),
     	optimizer=keras.optimizers.Adam(lr=1e-3),
