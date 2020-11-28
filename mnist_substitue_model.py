@@ -11,10 +11,12 @@ import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
+import tensorflow as tf
 from tensorflow.keras.datasets import mnist
 
 from tensorflow import keras
 from tensorflow.keras import layers
+import data_augmentor as da
 
 target_model = keras.models.load_model('saved_models/mnist_target_model')
 (_, _), (x_data, y_data) = mnist.load_data()
@@ -55,11 +57,28 @@ def create_model():
 
 
 # 3. substitute training
-def train_sub(model, epochs):
-	for i in range(epochs):
+def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda):
+	for iter in range(epochs):
+		# train the ith dataset 10 epochs
 		model.fit(x_train, y_train, batch_size=256, epochs=10, validation_data=(x_test, y_test))
-
-	pass
+		# data augmentation
+		# batch_jacobian shape: (batch_size, num_classes, img_rows, img_cols, channels)
+		batch_jacobian = da.Jacobian(model, x_train)
+		# build indices list to get elements (batch_size, img_rows, img_cols, channels) from batch_jacobian
+		indices = []
+		for idx in range(batch_jacobian.shape[0]):
+			indices.append([idx, y_train[idx]])
+		# now we get the elements
+		x_gradient = tf.gather_nd(batch_jacobian, indices)
+		# x + lambda * sgn(JF(x)[O(x)])
+		x_delta = lamda * tf.sign(x_gradient)
+		x_new_train = x_train + x_delta
+		y_new_train_prob = target_model.predict(x_new_train)
+		y_new_train = y_new_train_prob.argmax(axis=-1)
+		x_train = tf.concat([x_train, x_new_train], 0)
+		y_train = tf.concat([y_train, y_new_train], 0)
+	# the augmented data from the last time in the loop needs to be trained
+	model.fit(x_train, y_train, batch_size=256, epochs=10, validation_data=(x_test, y_test))
 
 
 model = create_model()
@@ -69,6 +88,6 @@ model.compile(
 	metrics=["accuracy"],
 )
 
-# model.fit(x_train, y_train, batch_size=256, epochs=20, validation_data=(x_test, y_test))
-# print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
-# model.save("saved_models/mnist_substitute_model/")
+train_sub(model=model, x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test, epochs=6, lamda=0.1)
+print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
+model.save("saved_models/mnist_substitute_model/")

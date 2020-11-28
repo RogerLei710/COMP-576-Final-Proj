@@ -22,32 +22,35 @@ import random
 import matplotlib.pyplot as plt
 
 
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
+(_, _), (x_test, y_test) = mnist.load_data()
 labels = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
 img_rows, img_cols, channels = 28, 28, 1
 num_classes = 10
 
-x_train = x_train.astype("float32") / 255.0
 x_test = x_test.astype("float32") / 255.0
 
-x_train = x_train.reshape((-1, img_rows, img_cols, channels))
 x_test = x_test.reshape((-1, img_rows, img_cols, channels))
 
 y_test_one_hot = tf.keras.utils.to_categorical(y_test, num_classes)
 
-model = keras.models.load_model('saved_models/mnist_substitute_model')
-model.compile(
+substitute_model = keras.models.load_model('saved_models/mnist_substitute_model')
+substitute_model.compile(
+	loss=keras.losses.SparseCategoricalCrossentropy(),
+	optimizer=keras.optimizers.Adam(lr=1e-3),
+	metrics=["accuracy"],
+)
+target_model = keras.models.load_model('saved_models/mnist_target_model')
+target_model.compile(
 	loss=keras.losses.SparseCategoricalCrossentropy(),
 	optimizer=keras.optimizers.Adam(lr=1e-3),
 	metrics=["accuracy"],
 )
 
-
 def adversarial_pattern(image, label):
 	image = tf.cast(image, tf.float32)
 	with tf.GradientTape() as tape:
 		tape.watch(image)
-		prediction = model(image)
+		prediction = substitute_model(image)
 		loss = tf.keras.losses.MSE(label, prediction)
 	gradient = tape.gradient(loss, image)
 	signed_grad = tf.sign(gradient)
@@ -85,21 +88,24 @@ def plot_misclassifications(miscount, idx):
 		image_label = y_test_one_hot[idx]
 		perturbations = adversarial_pattern(image, image_label).numpy()
 		adversarial = image + perturbations * 0.1
-		if labels[model.predict(image).argmax()] != labels[model.predict(adversarial).argmax()]:
+		if labels[substitute_model.predict(image).argmax()] != labels[substitute_model.predict(adversarial).argmax()]:
 			miscount -= 1
 			if channels == 1:
 				plt.imshow(adversarial.reshape((img_rows, img_cols)))
 			else:
 				plt.imshow(adversarial.reshape((img_rows, img_cols, channels)))
 			plt.show()
-			print('The original image is classified as {}'.format(labels[model.predict(image).argmax()]))
-			print('The adversarial image is classified as {}'.format(labels[model.predict(adversarial).argmax()]))
+			print('The original image is classified as {}'.format(labels[substitute_model.predict(image).argmax()]))
+			print('The adversarial image is classified as {}'.format(labels[substitute_model.predict(adversarial).argmax()]))
 		idx += 1
 
 
 adversarial_num = 1000
 x_adversarial_test, y_adversarial_test = next(generate_adversarials(adversarial_num))
-# print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
-# print("Base accuracy on adversarial images:", model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
+print("Accuracy of Substitute model on regular images:", substitute_model.evaluate(x=x_test, y=y_test, verbose=0))
+print("Accuracy of target model on regular images:", target_model.evaluate(x=x_test, y=y_test, verbose=0))
 
-plot_misclassifications(10, 0)
+print("Accuracy of Substitute model on adversarial images:", substitute_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
+print("Accuracy of target model on adversarial images:", target_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
+
+# plot_misclassifications(10, 0)
