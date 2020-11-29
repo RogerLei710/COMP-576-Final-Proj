@@ -33,12 +33,16 @@ x_test = x_test.reshape((-1, img_rows, img_cols, channels))
 
 y_test_one_hot = tf.keras.utils.to_categorical(y_test, num_classes)
 
-substitute_model = keras.models.load_model('saved_models/mnist_substitute_model')
-substitute_model.compile(
-	loss=keras.losses.SparseCategoricalCrossentropy(),
-	optimizer=keras.optimizers.Adam(lr=1e-3),
-	metrics=["accuracy"],
-)
+def get_substitute_model(loc='saved_models/mnist_substitute_model/576final'):
+	print('Get substitute model from {}'.format(loc))
+	substitute_model = keras.models.load_model(loc)
+	substitute_model.compile(
+		loss=keras.losses.SparseCategoricalCrossentropy(),
+		optimizer=keras.optimizers.Adam(lr=1e-3),
+		metrics=["accuracy"],
+	)
+	return substitute_model
+
 target_model = keras.models.load_model('saved_models/mnist_target_model')
 target_model.compile(
 	loss=keras.losses.SparseCategoricalCrossentropy(),
@@ -103,12 +107,21 @@ def plot_misclassifications(miscount, idx, epslion=0.2):
 		idx += 1
 
 
-adversarial_num = 1000
-x_adversarial_test, y_adversarial_test = next(generate_adversarials(batch_size=adversarial_num, epslion=0.2))
-print("Accuracy of Substitute model on regular images:", substitute_model.evaluate(x=x_test, y=y_test, verbose=0))
-print("Accuracy of Target model on regular images:", target_model.evaluate(x=x_test, y=y_test, verbose=0))
+# Run experiment with target model and substitute model (varies)
+def run_experiment(substitute_model_loc='saved_models/mnist_substitute_model/576final', plot=False):
+	global substitute_model
+	substitute_model = get_substitute_model(loc=substitute_model_loc)
+	adversarial_num = 1000
+	x_adversarial_test, y_adversarial_test = next(generate_adversarials(batch_size=adversarial_num, epslion=0.2))
+	print("Accuracy of Substitute model on regular images:", substitute_model.evaluate(x=x_test, y=y_test, verbose=0))
+	print("Accuracy of Target model on regular images:", target_model.evaluate(x=x_test, y=y_test, verbose=0))
 
-print("Accuracy of Substitute model on adversarial images:", substitute_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
-print("Accuracy of Target model on adversarial images:", target_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
+	print("Accuracy of Substitute model on adversarial images:", substitute_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
+	print("Accuracy of Target model on adversarial images:", target_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
 
-# plot_misclassifications(miscount=10, idx=0, epslion=0.2)
+	if plot:
+		plot_misclassifications(miscount=10, idx=0, epslion=0.2)
+
+
+if __name__ == "__main__":
+	run_experiment()
