@@ -89,11 +89,19 @@ def generate_adversarials(batch_size, epslion=0.2):
 
 # plot first x misclassification pictures
 def plot_misclassifications(miscount, idx, epslion=0.2):
+	base = miscount
 	while miscount > 0:
 		image = x_test[idx]
 		image = image.reshape((1, img_rows, img_cols, channels))
 		image_label = y_test_one_hot[idx]
 		adversarial = make_adversarial(image, image_label, epslion)
+
+		plt.subplot(base, 2, 2 * (base - miscount) + 1)
+		plt.title("original")
+		plt.imshow(image.reshape((img_rows, img_cols, channels)))
+
+		plt.subplot(base, 2, 2 * (base - miscount) + 2)
+		plt.title("adversarial")
 		if labels[substitute_model.predict(image).argmax()] != labels[substitute_model.predict(adversarial).argmax()]:
 			miscount -= 1
 			label_orig, label_classified = labels[substitute_model.predict(image).argmax()], labels[substitute_model.predict(adversarial).argmax()]
@@ -109,11 +117,11 @@ def plot_misclassifications(miscount, idx, epslion=0.2):
 
 
 # Run experiment with target model and substitute model (varies)
-def run_experiment(substitute_model_loc='saved_models/cifar10_substitute_model/576final', plot=False):
+def run_experiment(substitute_model_loc='saved_models/cifar10_substitute_model/576final', plot=False, epslion=0.1):
 	global substitute_model
 	substitute_model = get_substitute_model(loc=substitute_model_loc)
 	adversarial_num = 1000
-	x_adversarial_test, y_adversarial_test = next(generate_adversarials(batch_size=adversarial_num, epslion=0.2))
+	x_adversarial_test, y_adversarial_test = next(generate_adversarials(batch_size=adversarial_num, epslion=epslion))
 	print("Accuracy of Substitute model on regular images:", substitute_model.evaluate(x=x_test, y=y_test, verbose=0))
 	print("Accuracy of Target model on regular images:", target_model.evaluate(x=x_test, y=y_test, verbose=0))
 
@@ -121,8 +129,8 @@ def run_experiment(substitute_model_loc='saved_models/cifar10_substitute_model/5
 	print("Accuracy of Target model on adversarial images:", target_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
 
 	if plot:
-		plot_misclassifications(miscount=10, idx=0, epslion=0.2)
+		plot_misclassifications(miscount=5, idx=0, epslion=epslion)
 
 
 if __name__ == "__main__":
-	run_experiment()
+	run_experiment(epslon=0.1)
