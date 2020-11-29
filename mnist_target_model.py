@@ -45,12 +45,18 @@ def create_model():
 	return model
 
 
-model = create_model()
-model.compile(
-	loss=keras.losses.SparseCategoricalCrossentropy(),
-	optimizer=keras.optimizers.Adam(lr=1e-3),
-	metrics=["accuracy"],
-)
-model.fit(x_train, y_train, batch_size=256, epochs=20, validation_data=(x_test, y_test))
-print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
-model.save("saved_models/mnist_target_model/")
+def run_experiment(save_model=True):
+	model = create_model()
+	model.compile(
+		loss=keras.losses.SparseCategoricalCrossentropy(),
+		optimizer=keras.optimizers.Adam(lr=1e-3),
+		metrics=["accuracy"],
+	)
+	model.fit(x_train, y_train, batch_size=256, epochs=20, validation_data=(x_test, y_test))
+	print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
+
+	if save_model:
+		model.save("saved_models/mnist_target_model/")
+
+if __name__ == "__main__":
+	run_experiment()

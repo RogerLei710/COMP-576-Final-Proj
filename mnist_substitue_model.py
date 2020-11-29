@@ -57,7 +57,7 @@ def create_model():
 
 
 # 3. substitute training
-def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda):
+def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda, aug_func='jacobian'):
 	for iter in range(epochs):
 		print("Train substitute network round {} / {} ...".format(iter, epochs))
 		# train the ith dataset 10 epochs
@@ -72,7 +72,13 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda):
 		# now we get the elements
 		x_gradient = tf.gather_nd(batch_jacobian, indices)
 		# x + lambda * sgn(JF(x)[O(x)])
-		x_delta = lamda * tf.sign(x_gradient)
+		if aug_func == 'jacobian':        
+			x_delta = lamda * tf.sign(x_gradient)
+		elif aug_func == '576final':        
+			normalized = tf.math.l2_normalize(x_gradient, axis=[1,2], epsilon=1e-12)
+			x_delta = lamda * normalized
+		else:
+			raise ValueError('Augmentation func {} not recognized'.format(aug_func))
 		x_new_train = x_train + x_delta
 		# Clip data, each pixel is only valid in [0.0, 1.0]
 		x_new_train = np.clip(x_new_train, 0.0, 1.0)
@@ -85,13 +91,21 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda):
 	model.fit(x_train, y_train, batch_size=256, epochs=10, validation_data=(x_test, y_test))
 
 
-model = create_model()
-model.compile(
-	loss=keras.losses.SparseCategoricalCrossentropy(),
-	optimizer=keras.optimizers.Adam(lr=1e-3),
-	metrics=["accuracy"],
-)
+def run_experiment(lamda=0.001, aug_func='jacobian', save_model=True):
+	model = create_model()
+	model.compile(
+		loss=keras.losses.SparseCategoricalCrossentropy(),
+		optimizer=keras.optimizers.Adam(lr=1e-3),
+		metrics=["accuracy"],
+	)
 
-train_sub(model=model, x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test, epochs=4, lamda=0.001)
-print("(substitute model) Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
-model.save("saved_models/mnist_substitute_model/")
+	train_sub(model=model, x_train=x_train, y_train=y_train, x_test=x_test, y_test=y_test, epochs=4, lamda=lamda, aug_func=aug_func)
+	print("(substitute model) Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
+
+	if save_model:
+		loc = "saved_models/mnist_substitute_model/{}".format(aug_func)
+		print("Model saved under {}".format(loc))
+		model.save(loc)
+
+if __name__ == "__main__":
+	run_experiment(aug_func='576final', save_model=True)
