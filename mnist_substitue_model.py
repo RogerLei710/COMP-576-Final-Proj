@@ -75,7 +75,7 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda, aug_func='
 		if aug_func == 'jacobian':        
 			x_delta = lamda * tf.sign(x_gradient)
 		elif aug_func == '576final':        
-			normalized, _ = tf.linalg.normalize(x_gradient, ord='euclidean', axis=0)
+			normalized = tf.math.l2_normalize(x_gradient, axis=[1,2], epsilon=1e-12)
 			x_delta = lamda * normalized
 		else:
 			raise ValueError('Augmentation func {} not recognized'.format(aug_func))

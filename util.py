@@ -12,7 +12,9 @@ def split_train_test(X, y, test_ratio=0.2):
 
     # Summarize each class' distribution
     unique, counts = np.unique(y_test, return_counts=True)
-    print("Summarize each class' distribution", dict(zip(unique, counts)))
+    print("(Test) Summarize each class' distribution", dict(zip(unique, counts)))
+    unique, counts = np.unique(y_train, return_counts=True)
+    print("(Train) Summarize each class' distribution", dict(zip(unique, counts)))
     return X_train, X_test, y_train, y_test
 
 def test_split_train_test():
