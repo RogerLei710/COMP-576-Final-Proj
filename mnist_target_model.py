@@ -28,35 +28,36 @@ x_test = x_test.reshape((-1, img_rows, img_cols, channels))
 
 
 def create_model():
-	model = keras.Sequential(
-		[
-			keras.Input(shape=(28, 28, 1)),
-			layers.Conv2D(32, kernel_size=(5, 5), strides=(3, 3), padding='same', activation='relu'),
-			layers.Conv2D(64, kernel_size=(3, 3), strides=(3, 3), padding='same', activation='relu'),
-			layers.Conv2D(64, kernel_size=(3, 3), strides=(3, 3), padding='same', activation='relu'),
-			layers.MaxPooling2D(pool_size=(2, 2)),
-			layers.Dropout(0.2),
-			layers.Flatten(),
-			layers.Dense(32, activation='relu'),
-			layers.Dropout(0.2),
-			layers.Dense(num_classes, activation='softmax')
-		]
-	)
-	return model
+    model = keras.Sequential(
+        [
+            keras.Input(shape=(28, 28, 1)),
+            layers.Conv2D(32, kernel_size=(5, 5), strides=(3, 3), padding='same', activation='relu'),
+            layers.Conv2D(64, kernel_size=(3, 3), strides=(3, 3), padding='same', activation='relu'),
+            layers.Conv2D(64, kernel_size=(3, 3), strides=(3, 3), padding='same', activation='relu'),
+            layers.MaxPooling2D(pool_size=(2, 2)),
+            layers.Dropout(0.2),
+            layers.Flatten(),
+            layers.Dense(32, activation='relu'),
+            layers.Dropout(0.2),
+            layers.Dense(num_classes, activation='softmax')
+        ]
+    )
+    return model
 
 
 def run_experiment(save_model=True):
-	model = create_model()
-	model.compile(
-		loss=keras.losses.SparseCategoricalCrossentropy(),
-		optimizer=keras.optimizers.Adam(lr=1e-3),
-		metrics=["accuracy"],
-	)
-	model.fit(x_train, y_train, batch_size=256, epochs=20, validation_data=(x_test, y_test))
-	print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
+    model = create_model()
+    model.compile(
+        loss=keras.losses.SparseCategoricalCrossentropy(),
+        optimizer=keras.optimizers.Adam(lr=1e-3),
+        metrics=["accuracy"],
+    )
+    model.fit(x_train, y_train, batch_size=256, epochs=20, validation_data=(x_test, y_test))
+    print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
 
-	if save_model:
-		model.save("saved_models/mnist_target_model/")
+    if save_model:
+        model.save("saved_models/mnist_target_model/")
+
 
 if __name__ == "__main__":
-	run_experiment()
+    run_experiment()

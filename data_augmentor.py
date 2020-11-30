@@ -16,12 +16,12 @@ def Jacobian(model, data):
     - model: some model that we can perform dFi / dxj on softmax of jth class w.r.t. jth input entry
     - data: numpy array of shape(N, M), where N is the size of the dataset, M is the feature num
     """
-    _data = tf.convert_to_tensor(data, dtype=tf.float32) # Convert data to tensor
+    _data = tf.convert_to_tensor(data, dtype=tf.float32)  # Convert data to tensor
     with tf.GradientTape(persistent=True) as tape:
         x = _data
         tape.watch(x)
         y = model(x)
-    
+
     batch_jacobian = tape.batch_jacobian(y, x)
     return batch_jacobian
 
@@ -32,9 +32,9 @@ def test_Jacobian():
     # Load model
     model = keras.models.load_model('saved_models/mnist_target_model')
     model.compile(
-    	loss=keras.losses.SparseCategoricalCrossentropy(),
-    	optimizer=keras.optimizers.Adam(lr=1e-3),
-    	metrics=["accuracy"],
+        loss=keras.losses.SparseCategoricalCrossentropy(),
+        optimizer=keras.optimizers.Adam(lr=1e-3),
+        metrics=["accuracy"],
     )
 
     # Get test data

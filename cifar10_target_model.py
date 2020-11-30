@@ -58,5 +58,6 @@ def run_experiment(save_model=True):
     if save_model:
         model.save("saved_models/cifar10_target_model/")
 
+
 if __name__ == "__main__":
     run_experiment()
