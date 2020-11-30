@@ -2,4 +2,4 @@
 
 # TODO
 - 'TODO' in report-cifar10.ipynb
-- our heuristic's model tuning
+- Find better data augmentation methods for substitute model training

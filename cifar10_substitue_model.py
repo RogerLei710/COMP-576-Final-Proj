@@ -27,7 +27,7 @@ num_classes = 10
 
 # 1. initial data collection
 x_data = x_data.astype("float32") / 255.0
-x_train, x_test, y_train, y_test = split_train_test(x_data, y_data, test_ratio=0.95)
+x_train, x_test, y_train, y_test = split_train_test(x_data, y_data, test_ratio=0.9)
 
 x_train = x_train.reshape((-1, img_rows, img_cols, channels))
 x_test = x_test.reshape((-1, img_rows, img_cols, channels))

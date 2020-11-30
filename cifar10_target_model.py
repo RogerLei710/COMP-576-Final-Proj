@@ -28,18 +28,26 @@ x_test = x_test.reshape((-1, img_rows, img_cols, channels))
 
 
 def create_model():
-    # Ref: https://www.tensorflow.org/tutorials/images/cnn
+    # Ref: https://machinelearningmastery.com/how-to-develop-a-cnn-from-scratch-for-cifar-10-photo-classification/
     model = keras.Sequential(
         [
             keras.Input(shape=(img_rows, img_cols, channels)),
-            layers.Conv2D(32, (3, 3), activation='relu', input_shape=(img_rows, img_cols, 3)),
+            layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'),
+            layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'),
             layers.MaxPooling2D((2, 2)),
-            layers.Conv2D(64, (3, 3), activation='relu'),
+            layers.Dropout(0.2),
+            layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'),
+            layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'),
             layers.MaxPooling2D((2, 2)),
-            layers.Conv2D(64, (3, 3), activation='relu'),
+            layers.Dropout(0.2),
+            layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'),
+            layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'),
+            layers.MaxPooling2D((2, 2)),
+            layers.Dropout(0.2),
             layers.Flatten(),
-            layers.Dense(64, activation='relu'),
-            layers.Dense(num_classes, activation='softmax'),
+            layers.Dense(128, activation='relu', kernel_initializer='he_uniform'),
+            layers.Dropout(0.2),
+            layers.Dense(10, activation='softmax')
         ]
     )
     return model
@@ -52,7 +60,7 @@ def run_experiment(save_model=True):
         optimizer=keras.optimizers.Adam(lr=1e-3),
         metrics=["accuracy"],
     )
-    model.fit(x_train, y_train, batch_size=256, epochs=20, validation_data=(x_test, y_test))
+    model.fit(x_train, y_train, batch_size=256, epochs=50, validation_data=(x_test, y_test))
     print("Base accuracy on regular images:", model.evaluate(x=x_test, y=y_test, verbose=0))
 
     if save_model:

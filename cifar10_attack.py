@@ -139,4 +139,4 @@ def run_experiment(substitute_model_loc='saved_models/cifar10_substitute_model/5
 
 
 if __name__ == "__main__":
-    run_experiment(epslon=0.1)
+    run_experiment(plot=False, epslion=0.05)
