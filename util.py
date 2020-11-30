@@ -6,6 +6,7 @@
 from tensorflow.keras.datasets import mnist
 from sklearn.model_selection import train_test_split
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def split_train_test(X, y, test_ratio=0.2):
@@ -17,6 +18,17 @@ def split_train_test(X, y, test_ratio=0.2):
     unique, counts = np.unique(y_train, return_counts=True)
     print("(Train) Summarize each class' distribution", dict(zip(unique, counts)))
     return X_train, X_test, y_train, y_test
+
+
+# plotting helper function
+def plot_hist(hist):
+    plt.plot(hist.history['acc'])
+    plt.plot(hist.history['val_acc'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
 
 
 def test_split_train_test():

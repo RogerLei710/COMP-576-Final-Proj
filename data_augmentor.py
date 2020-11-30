@@ -3,9 +3,10 @@
 #
 # It should correspond to the augmentor(s) used in the paper "Practical Black-Box Attacks against Machine Learning".
 #
-# Author: Po-Kai Chang
+# Author: Po-Kai Chang, Roger
 ################################################################################
 import tensorflow as tf
+from keras_preprocessing.image import ImageDataGenerator
 from tensorflow import keras
 from tensorflow.keras.datasets import mnist
 
@@ -24,6 +25,23 @@ def Jacobian(model, data):
 
     batch_jacobian = tape.batch_jacobian(y, x)
     return batch_jacobian
+
+
+def cifar10_data_generator(x_train):
+    """
+    set up image augmentation for cifar 10
+    :param x_train: x_train data
+    :return: data generator
+    """
+    datagen = ImageDataGenerator(
+        rotation_range=15,
+        horizontal_flip=True,
+        width_shift_range=0.1,
+        height_shift_range=0.1
+        # zoom_range=0.3
+    )
+    datagen.fit(x_train)
+    return datagen
 
 
 def test_Jacobian():
