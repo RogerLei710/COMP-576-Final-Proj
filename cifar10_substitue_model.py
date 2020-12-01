@@ -14,6 +14,11 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import tensorflow as tf
 from tensorflow.keras.datasets import cifar10
 
+#https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
+gpus = tf.config.experimental.list_physical_devices('GPU')
+for gpu in gpus:
+  tf.config.experimental.set_memory_growth(gpu, True)
+
 from tensorflow import keras
 from tensorflow.keras import layers
 import data_augmentor as da
@@ -115,4 +120,4 @@ def run_experiment(lamda=0.001, aug_func='jacobian', save_model=True, epochs=4):
 
 
 if __name__ == "__main__":
-    run_experiment(lamda=0.1, aug_func='datagen', save_model=True, epochs=2)
+    run_experiment(lamda=0.1, aug_func='jacobian', save_model=True, epochs=2)

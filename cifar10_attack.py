@@ -15,11 +15,19 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import tensorflow as tf
 from tensorflow.keras.datasets import cifar10
 
+# this part will make sure the GPU memory will not be drained totally and will prevent from failing.
+# https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
+gpus = tf.config.experimental.list_physical_devices('GPU')
+for gpu in gpus:
+  tf.config.experimental.set_memory_growth(gpu, True)
+
 from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import drawHeatMap as dhm
+from sklearn.metrics import classification_report, confusion_matrix
 
 (_, _), (x_test, y_test) = cifar10.load_data()
 # Ref: https://www.cs.toronto.edu/~kriz/cifar.html
@@ -33,7 +41,6 @@ x_test = x_test.reshape((-1, img_rows, img_cols, channels))
 
 y_test_one_hot = tf.keras.utils.to_categorical(y_test, num_classes)
 
-
 def get_substitute_model(loc='saved_models/cifar10_substitute_model/datagen'):
     print('Get substitute model from {}'.format(loc))
     substitute_model = keras.models.load_model(loc)
@@ -46,6 +53,7 @@ def get_substitute_model(loc='saved_models/cifar10_substitute_model/datagen'):
 
 
 target_model = keras.models.load_model('saved_models/cifar10_target_model')
+
 target_model.compile(
     loss=keras.losses.SparseCategoricalCrossentropy(),
     optimizer=keras.optimizers.Adam(lr=1e-3),
@@ -120,23 +128,60 @@ def plot_misclassifications(miscount, idx, epslion=0.2):
         idx += 1
 
 
+
+
 # Run experiment with target model and substitute model (varies)
-def run_experiment(substitute_model_loc='saved_models/cifar10_substitute_model/datagen', plot=False, epslion=0.1):
+def run_experiment(substitute_model_loc='saved_models/cifar10_target_model', plot=False, epslion=0.1):
     global substitute_model
     substitute_model = get_substitute_model(loc=substitute_model_loc)
     adversarial_num = 1000
     x_adversarial_test, y_adversarial_test = next(generate_adversarials(batch_size=adversarial_num, epslion=epslion))
-    print("Accuracy of Substitute model on regular images:", substitute_model.evaluate(x=x_test, y=y_test, verbose=0))
-    print("Accuracy of Target model on regular images:", target_model.evaluate(x=x_test, y=y_test, verbose=0))
+    # print("Accuracy of Substitute model on regular images:", substitute_model.evaluate(x=x_test, y=y_test, verbose=0))
+    # print("Accuracy of Target model on regular images:", target_model.evaluate(x=x_test, y=y_test, verbose=0))
 
-    print("Accuracy of Substitute model on adversarial images:",
-          substitute_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
+
+    # print("Accuracy of Substitute model on adversarial images:",
+    #       substitute_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
     print("Accuracy of Target model on adversarial images:",
           target_model.evaluate(x=x_adversarial_test, y=y_adversarial_test, verbose=0))
+
+    y_sub = substitute_model.predict(x_test).argmax(axis=1)
+    y_target = target_model.predict(x_test).argmax(axis=1)
+    # print(y_.shape)
+    # print(y_test.shape)
+
+    ################Confusion Matrix#################
+    print('Substitute Confusion Matrix')
+    print(confusion_matrix(y_sub, y_test))
+    matrix = confusion_matrix(y_sub, y_test)
+    y_axis_title = [str(x) for x in range(10)]
+    x_axis_title = [str(x) for x in range(10)]
+    fig, ax = plt.subplots()
+    im, cbar = dhm.heatmap(matrix, y_axis_title, x_axis_title, ax=ax,
+                       cmap="Blues", cbarlabel="Labeled Count", title="Substitute Model Confusion Matrix")
+    texts = dhm.annotate_heatmap(im, valfmt="{x:.1f}")
+    fig.tight_layout()
+    plt.show()
+
+    print('Target Confusion Matrix')
+    print(confusion_matrix(y_target, y_test))
+    matrix = confusion_matrix(y_target, y_test)
+    y_axis_title = [str(x) for x in range(10)]
+    x_axis_title = [str(x) for x in range(10)]
+    fig, ax = plt.subplots()
+    im, cbar = dhm.heatmap(matrix, y_axis_title, x_axis_title, ax=ax,
+                       cmap="Greens", cbarlabel="Labeled Count", title="Target Model Confusion Matrix")
+    texts = dhm.annotate_heatmap(im, valfmt="{x:.1f}")
+    fig.tight_layout()
+    plt.show()
+    #################################################
 
     if plot:
         plot_misclassifications(miscount=5, idx=0, epslion=epslion)
 
 
+
 if __name__ == "__main__":
-    run_experiment(plot=False, epslion=0.05)
+    model_loc_substitute = 'saved_models/cifar10_substitute_model/datagen'
+    for e in [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]:
+        run_experiment(substitute_model_loc=model_loc_substitute, plot=False, epslion=e)
