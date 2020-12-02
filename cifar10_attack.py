@@ -154,24 +154,24 @@ def run_experiment(substitute_model_loc='saved_models/cifar10_target_model', plo
     print('Substitute Confusion Matrix')
     print(confusion_matrix(y_sub, y_test))
     matrix = confusion_matrix(y_sub, y_test)
-    y_axis_title = [str(x) for x in range(10)]
-    x_axis_title = [str(x) for x in range(10)]
+    # y_axis_title = [str(x) for x in range(10)]
+    # x_axis_title = [str(x) for x in range(10)]
+    y_axis_title = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+    x_axis_title = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
     fig, ax = plt.subplots()
     im, cbar = dhm.heatmap(matrix, y_axis_title, x_axis_title, ax=ax,
                        cmap="Blues", cbarlabel="Labeled Count", title="Substitute Model Confusion Matrix")
-    texts = dhm.annotate_heatmap(im, valfmt="{x:.1f}")
+    texts = dhm.annotate_heatmap(im, valfmt="{x:d}")
     fig.tight_layout()
     plt.show()
 
     print('Target Confusion Matrix')
     print(confusion_matrix(y_target, y_test))
     matrix = confusion_matrix(y_target, y_test)
-    y_axis_title = [str(x) for x in range(10)]
-    x_axis_title = [str(x) for x in range(10)]
     fig, ax = plt.subplots()
     im, cbar = dhm.heatmap(matrix, y_axis_title, x_axis_title, ax=ax,
                        cmap="Greens", cbarlabel="Labeled Count", title="Target Model Confusion Matrix")
-    texts = dhm.annotate_heatmap(im, valfmt="{x:.1f}")
+    texts = dhm.annotate_heatmap(im, valfmt="{x:d}")
     fig.tight_layout()
     plt.show()
     #################################################
