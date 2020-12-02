@@ -67,7 +67,7 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda, aug_func='
         model.fit_generator(datagen.flow(x_train, y_train, batch_size=256),
                             steps_per_epoch=len(x_train) / 256, epochs=50,
                             validation_data=(x_test, y_test))
-    else:
+    elif(aug_func in ['jacobian', '576final']):
         for iter in range(epochs):
             print("Train substitute network round {} / {} ...".format(iter, epochs))
             # train the ith dataset 10 epochs
@@ -99,7 +99,8 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda, aug_func='
         # the augmented data from the last time in the loop needs to be trained
         print("Train substitute network round {} / {} ...".format(epochs, epochs))
         model.fit(x_train, y_train, batch_size=256, epochs=10, validation_data=(x_test, y_test))
-
+    else:
+        print("Wrong aug_func")
 
 def run_experiment(lamda=0.001, aug_func='jacobian', save_model=True, epochs=4):
     model = create_model()
@@ -120,4 +121,4 @@ def run_experiment(lamda=0.001, aug_func='jacobian', save_model=True, epochs=4):
 
 
 if __name__ == "__main__":
-    run_experiment(lamda=0.1, aug_func='jacobian', save_model=True, epochs=2)
+    run_experiment(lamda=0.1, aug_func='datagen', save_model=True, epochs=2)
