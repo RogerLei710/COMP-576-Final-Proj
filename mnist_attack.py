@@ -33,7 +33,7 @@ x_test = x_test.reshape((-1, img_rows, img_cols, channels))
 y_test_one_hot = tf.keras.utils.to_categorical(y_test, num_classes)
 
 
-def get_substitute_model(loc='saved_models/mnist_substitute_model/576final'):
+def get_substitute_model(loc='saved_models/mnist_substitute_model/jacobian-beta'):
     print('Get substitute model from {}'.format(loc))
     substitute_model = keras.models.load_model(loc)
     substitute_model.compile(
@@ -113,7 +113,7 @@ def plot_misclassifications(miscount, idx, epslion=0.2):
 
 
 # Run experiment with target model and substitute model (varies)
-def run_experiment(substitute_model_loc='saved_models/mnist_substitute_model/576final', plot=False):
+def run_experiment(substitute_model_loc='saved_models/mnist_substitute_model/jacobian-beta', plot=False):
     global substitute_model
     substitute_model = get_substitute_model(loc=substitute_model_loc)
     adversarial_num = 1000
