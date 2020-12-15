@@ -13,3 +13,4 @@ saved_models/
 
 tags
 *.vim
+.DS_Store
