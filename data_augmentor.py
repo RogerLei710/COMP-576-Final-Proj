@@ -3,9 +3,10 @@
 #
 # It should correspond to the augmentor(s) used in the paper "Practical Black-Box Attacks against Machine Learning".
 #
-# Author: Po-Kai Chang
+# Author: Po-Kai Chang, Roger
 ################################################################################
 import tensorflow as tf
+from keras_preprocessing.image import ImageDataGenerator
 from tensorflow import keras
 from tensorflow.keras.datasets import mnist
 
@@ -16,14 +17,31 @@ def Jacobian(model, data):
     - model: some model that we can perform dFi / dxj on softmax of jth class w.r.t. jth input entry
     - data: numpy array of shape(N, M), where N is the size of the dataset, M is the feature num
     """
-    _data = tf.convert_to_tensor(data, dtype=tf.float32) # Convert data to tensor
+    _data = tf.convert_to_tensor(data, dtype=tf.float32)  # Convert data to tensor
     with tf.GradientTape(persistent=True) as tape:
         x = _data
         tape.watch(x)
         y = model(x)
-    
+
     batch_jacobian = tape.batch_jacobian(y, x)
     return batch_jacobian
+
+
+def cifar10_data_generator(x_train):
+    """
+    set up image augmentation for cifar 10
+    :param x_train: x_train data
+    :return: data generator
+    """
+    datagen = ImageDataGenerator(
+        rotation_range=15,
+        horizontal_flip=True,
+        width_shift_range=0.1,
+        height_shift_range=0.1
+        # zoom_range=0.3
+    )
+    datagen.fit(x_train)
+    return datagen
 
 
 def test_Jacobian():
@@ -32,9 +50,9 @@ def test_Jacobian():
     # Load model
     model = keras.models.load_model('saved_models/mnist_target_model')
     model.compile(
-    	loss=keras.losses.SparseCategoricalCrossentropy(),
-    	optimizer=keras.optimizers.Adam(lr=1e-3),
-    	metrics=["accuracy"],
+        loss=keras.losses.SparseCategoricalCrossentropy(),
+        optimizer=keras.optimizers.Adam(lr=1e-3),
+        metrics=["accuracy"],
     )
 
     # Get test data
