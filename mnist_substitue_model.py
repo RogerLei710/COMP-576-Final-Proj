@@ -57,7 +57,7 @@ def create_model():
 
 
 # 3. substitute training
-def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda, aug_func='jacobian'):
+def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda, aug_func='jacobian-alpha'):
     for iter in range(epochs):
         print("Train substitute network round {} / {} ...".format(iter, epochs))
         # train the ith dataset 10 epochs
@@ -72,9 +72,9 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda, aug_func='
         # now we get the elements
         x_gradient = tf.gather_nd(batch_jacobian, indices)
         # x + lambda * sgn(JF(x)[O(x)])
-        if aug_func == 'jacobian':
+        if aug_func == 'jacobian-alpha':
             x_delta = lamda * tf.sign(x_gradient)
-        elif aug_func == '576final':
+        elif aug_func == 'jacobian-beta':
             normalized = tf.math.l2_normalize(x_gradient, axis=[1, 2], epsilon=1e-12)
             x_delta = lamda * normalized
         else:
@@ -91,7 +91,7 @@ def train_sub(model, x_train, y_train, x_test, y_test, epochs, lamda, aug_func='
     model.fit(x_train, y_train, batch_size=256, epochs=10, validation_data=(x_test, y_test))
 
 
-def run_experiment(lamda=0.001, aug_func='jacobian', save_model=True):
+def run_experiment(lamda=0.001, aug_func='jacobian-alpha', save_model=True):
     model = create_model()
     model.compile(
         loss=keras.losses.SparseCategoricalCrossentropy(),
@@ -110,4 +110,4 @@ def run_experiment(lamda=0.001, aug_func='jacobian', save_model=True):
 
 
 if __name__ == "__main__":
-    run_experiment(aug_func='576final', save_model=True)
+    run_experiment(aug_func='jacobian-beta', save_model=True)
